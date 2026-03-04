@@ -2,7 +2,7 @@
 # ──────────────────────────────────────────────────────────────
 # Formato:
 #   [Nombre Coleccionista]
-#   Etiqueta del deck
+#   Etiqueta del deck      <- opcional, línea antes de la URL
 #   https://moxfield.com/decks/...
 # ──────────────────────────────────────────────────────────────
 
@@ -26,4 +26,5 @@ Solo Foil ✨
 https://moxfield.com/decks/w666vcs5i0qlEXcAHWnwBw
 
 [RAMUI]
+Mi colección
 https://moxfield.com/decks/MAL39ofHYka_Hk6dWBlQXA
