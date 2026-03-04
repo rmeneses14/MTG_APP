@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rakdos Card Finder</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Uncial+Antiqua&family=Cinzel:wght@400;600;900&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --red:        #c0392b;
+      --red-bright: #e74c3c;
+      --red-glow:   #ff4444;
+      --red-dim:    #6b1a1a;
+      --red-deep:   #3d0f0f;
+      --crimson:    #8b0000;
+      --ember:      #ff6b35;
+
+      --bg:         #080608;
+      --bg-card:    #0e0a0c;
+      --bg-panel:   #110d0f;
+      --bg-input:   #0a0708;
+
+      --border:     #2a1418;
+      --border-red: #4a1c20;
+
+      --text:       #d4b8b8;
+      --text-dim:   #6a4a4a;
+      --text-bright:#f0d8d8;
+
+      --kinghouse:  #e07070;
+      --tcgworld:   #e09040;
+      --omega:      #a070d0;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Cinzel', serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Rakdos background ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 70% 50% at 50% 0%, rgba(192,57,43,0.12) 0%, transparent 55%),
+        radial-gradient(ellipse 40% 30% at 10% 80%, rgba(139,0,0,0.08) 0%, transparent 50%),
+        radial-gradient(ellipse 40% 30% at 90% 20%, rgba(139,0,0,0.06) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cline x1='0' y1='80' x2='80' y2='0' stroke='%23c0392b' stroke-width='0.3' opacity='0.06'/%3E%3Cline x1='-20' y1='80' x2='60' y2='0' stroke='%23c0392b' stroke-width='0.2' opacity='0.04'/%3E%3Ccircle cx='40' cy='40' r='0.6' fill='%23e74c3c' opacity='0.15'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 0 24px 80px;
+    }
+
+    /* ── Header ── */
+    header {
+      text-align: center;
+      padding: 52px 0 44px;
+    }
+
+    .header-sigil {
+      font-size: 28px;
+      line-height: 1;
+      margin-bottom: 16px;
+      display: block;
+      color: var(--red);
+      animation: pulseGlow 3s ease-in-out infinite;
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% { filter: drop-shadow(0 0 8px rgba(192,57,43,0.5)); }
+      50%       { filter: drop-shadow(0 0 20px rgba(231,76,60,0.9)); }
+    }
+
+    .header-eyebrow {
+      font-size: 9px;
+      letter-spacing: 0.45em;
+      color: var(--red-dim);
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-family: 'Uncial Antiqua', serif;
+      font-size: clamp(28px, 6vw, 52px);
+      color: var(--red-bright);
+      line-height: 1.1;
+      text-shadow:
+        0 0 30px rgba(231,76,60,0.4),
+        0 0 80px rgba(192,57,43,0.2),
+        2px 2px 0px rgba(0,0,0,0.8);
+      letter-spacing: 0.04em;
+    }
+
+    .subtitle {
+      margin-top: 14px;
+      color: var(--text-dim);
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+    }
+
+    .header-rule {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin: 24px auto 0;
+      max-width: 400px;
+    }
+
+    .header-rule::before,
+    .header-rule::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+    }
+
+    .header-rule::before { background: linear-gradient(90deg, transparent, var(--red-dim)); }
+    .header-rule::after  { background: linear-gradient(90deg, var(--red-dim), transparent); }
+
+    .rule-diamond {
+      width: 6px;
+      height: 6px;
+      background: var(--red);
+      transform: rotate(45deg);
+      box-shadow: 0 0 8px rgba(192,57,43,0.7);
+    }
+
+    /* ── Panel ── */
+    .panel {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-red);
+      border-radius: 2px;
+      padding: 28px 32px;
+      margin-bottom: 20px;
+      position: relative;
+      clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+    }
+
+    .panel::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      clip-path: inherit;
+      background: linear-gradient(135deg, rgba(192,57,43,0.05) 0%, transparent 40%);
+      pointer-events: none;
+    }
+
+    .panel::after {
+      content: '';
+      position: absolute;
+      top: 0; right: 0;
+      width: 40px; height: 40px;
+      background: linear-gradient(225deg, rgba(192,57,43,0.18) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .panel-label {
+      font-size: 9px;
+      letter-spacing: 0.4em;
+      color: var(--red-dim);
+      text-transform: uppercase;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .panel-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, var(--border-red), transparent);
+    }
+
+    textarea {
+      width: 100%;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      color: #c8a8a8;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 13px;
+      line-height: 1.75;
+      padding: 16px 18px;
+      resize: vertical;
+      min-height: 220px;
+      outline: none;
+      transition: border-color 0.25s, box-shadow 0.25s;
+    }
+
+    textarea:focus {
+      border-color: var(--red-dim);
+      box-shadow: 0 0 0 1px rgba(192,57,43,0.15), inset 0 0 20px rgba(139,0,0,0.05);
+    }
+
+    textarea::placeholder { color: #3a2828; }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 18px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .btn-search {
+      font-family: 'Cinzel', serif;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      background: linear-gradient(135deg, #3d0f0f 0%, #1e0808 100%);
+      color: var(--red-bright);
+      border: 1px solid var(--red-dim);
+      border-radius: 2px;
+      padding: 13px 36px;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+      overflow: hidden;
+      clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+    }
+
+    .btn-search::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(231,76,60,0.2), transparent 60%);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .btn-search::after {
+      content: '';
+      position: absolute;
+      top: -50%; left: -60%;
+      width: 40%; height: 200%;
+      background: linear-gradient(105deg, transparent, rgba(255,107,53,0.25), transparent);
+      transform: skewX(-20deg);
+      transition: left 0.45s;
+      opacity: 0;
+    }
+
+    .btn-search:hover::before { opacity: 1; }
+    .btn-search:hover::after  { left: 120%; opacity: 1; }
+    .btn-search:hover {
+      border-color: var(--red);
+      color: #ff6666;
+      box-shadow: 0 0 24px rgba(192,57,43,0.3), inset 0 0 12px rgba(192,57,43,0.1);
+    }
+    .btn-search:active  { transform: translateY(1px); }
+    .btn-search:disabled { opacity: 0.35; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    .btn-save {
+      font-family: 'Cinzel', serif;
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      background: transparent;
+      color: var(--text-dim);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      padding: 13px 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-save:hover { color: var(--red-dim); border-color: var(--border-red); }
+
+    .status-msg {
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-left: auto;
+      font-family: 'Share Tech Mono', monospace;
+      letter-spacing: 0.05em;
+    }
+
+    .backend-note {
+      margin-top: 16px;
+      padding: 10px 16px;
+      background: rgba(139,0,0,0.07);
+      border-left: 2px solid var(--red-dim);
+      font-size: 11px;
+      color: var(--text-dim);
+      font-family: 'Share Tech Mono', monospace;
+      letter-spacing: 0.03em;
+    }
+
+    .backend-note strong { color: var(--red-dim); }
+
+    /* ── Loading ── */
+    #loading {
+      display: none;
+      text-align: center;
+      padding: 56px 24px;
+    }
+
+    .flame-ring {
+      width: 52px;
+      height: 52px;
+      margin: 0 auto 20px;
+      position: relative;
+    }
+
+    .flame-ring::before,
+    .flame-ring::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 2px solid transparent;
+    }
+
+    .flame-ring::before {
+      border-top-color: var(--red-bright);
+      border-right-color: var(--red-dim);
+      animation: spin 0.9s linear infinite;
+    }
+
+    .flame-ring::after {
+      inset: 6px;
+      border-top-color: var(--ember);
+      border-left-color: var(--red-dim);
+      animation: spin 1.4s linear infinite reverse;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    #loading p {
+      color: var(--text-dim);
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+    }
+
+    /* ── Results ── */
+    #results { display: none; }
+
+    .results-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .results-title {
+      font-size: 10px;
+      letter-spacing: 0.4em;
+      color: var(--red-dim);
+      text-transform: uppercase;
+    }
+
+    .results-stats {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    .section-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 28px 0 10px;
+      font-size: 9px;
+      letter-spacing: 0.45em;
+      color: var(--red-dim);
+      text-transform: uppercase;
+    }
+
+    .section-divider::before {
+      content: '';
+      width: 16px;
+      height: 1px;
+      background: var(--red-dim);
+    }
+
+    .section-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, var(--border-red), transparent);
+    }
+
+    /* ── Card row ── */
+    .card-row {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-left: 2px solid var(--red-deep);
+      margin-bottom: 6px;
+      overflow: hidden;
+      animation: slideIn 0.25s ease both;
+      transition: border-left-color 0.2s;
+    }
+
+    .card-row:hover { border-left-color: var(--red-dim); }
+    .card-row.open  { border-left-color: var(--red); }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(-8px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      padding: 11px 16px;
+      gap: 12px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .card-header:hover { background: rgba(192,57,43,0.04); }
+
+    .card-qty {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 12px;
+      color: var(--red-dim);
+      min-width: 22px;
+    }
+
+    .card-name {
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--text-bright);
+      flex: 1;
+      letter-spacing: 0.03em;
+    }
+
+    .store-badges { display: flex; gap: 5px; }
+
+    .badge {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 9px;
+      padding: 2px 7px;
+      border-radius: 1px;
+      border: 1px solid;
+      letter-spacing: 0.05em;
+    }
+
+    .badge.found-kh  { color: var(--kinghouse); border-color: rgba(224,112,112,0.3); background: rgba(224,112,112,0.07); }
+    .badge.found-tw  { color: var(--tcgworld);  border-color: rgba(224,144,64,0.3);  background: rgba(224,144,64,0.07);  }
+    .badge.found-oe  { color: var(--omega);     border-color: rgba(160,112,208,0.3); background: rgba(160,112,208,0.07); }
+    .badge.not-found { color: var(--text-dim);  border-color: var(--border);         opacity: 0.45; }
+
+    .chevron {
+      color: var(--red-deep);
+      font-size: 9px;
+      transition: transform 0.2s, color 0.2s;
+      margin-left: 2px;
+    }
+
+    .card-row.open .chevron { transform: rotate(180deg); color: var(--red-dim); }
+
+    .card-details {
+      display: none;
+      padding: 4px 16px 14px 50px;
+      border-top: 1px solid var(--border);
+      background: rgba(0,0,0,0.2);
+    }
+
+    .card-row.open .card-details { display: block; }
+
+    .store-result {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 9px 0;
+      border-bottom: 1px solid rgba(42,20,24,0.6);
+      font-size: 13px;
+    }
+
+    .store-result:last-child { border-bottom: none; }
+
+    .store-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .dot-kh { background: var(--kinghouse); box-shadow: 0 0 5px rgba(224,112,112,0.5); }
+    .dot-tw { background: var(--tcgworld);  box-shadow: 0 0 5px rgba(224,144,64,0.5);  }
+    .dot-oe { background: var(--omega);     box-shadow: 0 0 5px rgba(160,112,208,0.5); }
+    .dot-nf { background: var(--border); }
+
+    .store-name-label {
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      color: var(--text-dim);
+      min-width: 120px;
+      text-transform: uppercase;
+    }
+
+    .store-found-name {
+      flex: 1;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 12px;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .store-price {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 13px;
+      color: var(--red-bright);
+      min-width: 80px;
+      text-align: right;
+      text-shadow: 0 0 10px rgba(231,76,60,0.3);
+    }
+
+    .store-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 9px;
+      letter-spacing: 0.08em;
+      color: var(--red-dim);
+      text-decoration: none;
+      border: 1px solid var(--border-red);
+      padding: 4px 10px;
+      border-radius: 1px;
+      transition: all 0.15s;
+      white-space: nowrap;
+      text-transform: uppercase;
+      font-family: 'Cinzel', serif;
+    }
+
+    .store-link:hover {
+      color: var(--red-bright);
+      border-color: var(--red);
+      box-shadow: 0 0 8px rgba(192,57,43,0.25);
+    }
+
+    .not-available {
+      flex: 1;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 11px;
+      color: #3a2828;
+    }
+
+    .error-msg {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 10px;
+      color: var(--ember);
+      opacity: 0.6;
+    }
+
+    /* ── Summary bar ── */
+    .summary-bar {
+      display: flex;
+      gap: 24px;
+      padding: 18px 0 0;
+      margin-top: 20px;
+      border-top: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+
+    .summary-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      color: var(--text-dim);
+      letter-spacing: 0.05em;
+    }
+
+    .summary-dot { width: 7px; height: 7px; border-radius: 50%; }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 28px 0 0;
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      color: #2a1818;
+      text-transform: uppercase;
+      border-top: 1px solid var(--border);
+      margin-top: 48px;
+    }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--red-deep); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--red-dim); }
+
+    @media (max-width: 600px) {
+      .panel { padding: 20px 16px; }
+      .store-name-label { min-width: 80px; font-size: 9px; }
+      .store-badges { display: none; }
+      .card-details { padding-left: 28px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <header>
+      <span class="header-sigil">♦</span>
+      <p class="header-eyebrow">Magic The Gathering · Costa Rica</p>
+      <h1>Rakdos Card Finder</h1>
+      <p class="subtitle">Busca tus cartas en las 3 tiendas de un golpe</p>
+      <div class="header-rule"><div class="rule-diamond"></div></div>
+    </header>
+
+    <div class="panel">
+      <p class="panel-label">Lista de cartas</p>
+      <textarea id="cardList" spellcheck="false"
+        placeholder="[CREATURES]&#10;1 Blood Seeker&#10;1 Vein Ripper&#10;&#10;[ARTIFACTS]&#10;1 Lightning Greaves&#10;&#10;[ENCHANTMENTS]&#10;1 Sanguine Bond"></textarea>
+      <div class="actions">
+        <button class="btn-search" id="searchBtn" onclick="runSearch()">
+          ⬡ &nbsp;Buscar en tiendas
+        </button>
+        <button class="btn-save" onclick="saveList()">Guardar lista</button>
+        <span class="status-msg" id="statusMsg"></span>
+      </div>
+      <div class="backend-note">
+        <strong>!</strong> &nbsp;El backend puede tardar ~30 seg en despertar si lleva tiempo sin uso (Render free tier).
+      </div>
+    </div>
+
+    <div id="loading">
+      <div class="flame-ring"></div>
+      <p>Invocando resultados…</p>
+    </div>
+
+    <div id="results">
+      <div class="results-header">
+        <span class="results-title">⬡ Resultados</span>
+        <span class="results-stats" id="resultsStats"></span>
+      </div>
+      <div id="resultsBody"></div>
+      <div class="summary-bar" id="summaryBar"></div>
+    </div>
+
+    <footer>Rakdos Card Finder · Precios y stock sujetos al inventario dinámico de cada tienda</footer>
+  </div>
+
+  <script>
+    // ── Config — reemplaza con tu URL real de Render ───────────────────────
+    const BACKEND_URL = "https://mtg-card-finder.onrender.com";
+
+    const STORE_META = {
+      "TCG KingHouse":  { cls: "kh", dot: "dot-kh", short: "KH" },
+      "TCG World":      { cls: "tw", dot: "dot-tw", short: "TW" },
+      "Omega En Línea": { cls: "oe", dot: "dot-oe", short: "OE" },
+    };
+
+    const textarea = document.getElementById("cardList");
+
+    async function loadDefaultCards() {
+      try {
+        const r = await fetch("cards.txt?t=" + Date.now());
+        if (r.ok) {
+          const text = await r.text();
+          textarea.value = text.trim();
+          setStatus("lista cargada desde cards.txt");
+          setTimeout(() => setStatus(""), 3000);
+        }
+      } catch {
+        const saved = localStorage.getItem("mtg_card_list");
+        if (saved) textarea.value = saved;
+      }
+    }
+
+    function saveList() {
+      localStorage.setItem("mtg_card_list", textarea.value);
+      setStatus("guardado localmente ✓");
+      setTimeout(() => setStatus(""), 3000);
+    }
+
+    function setStatus(msg) {
+      document.getElementById("statusMsg").textContent = msg;
+    }
+
+    async function runSearch() {
+      const cards = textarea.value.trim();
+      if (!cards) { setStatus("escribe al menos una carta"); return; }
+
+      document.getElementById("searchBtn").disabled = true;
+      document.getElementById("loading").style.display = "block";
+      document.getElementById("results").style.display = "none";
+      setStatus("buscando…");
+
+      try {
+        const res = await fetch(`${BACKEND_URL}/search`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ cards }),
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        renderResults(data.results || []);
+      } catch (err) {
+        setStatus("error: " + err.message);
+      } finally {
+        document.getElementById("loading").style.display = "none";
+        document.getElementById("searchBtn").disabled = false;
+      }
+    }
+
+    function renderResults(results) {
+      const body    = document.getElementById("resultsBody");
+      const stats   = document.getElementById("resultsStats");
+      const summary = document.getElementById("summaryBar");
+      body.innerHTML = "";
+
+      if (!results.length) {
+        body.innerHTML = '<p style="color:var(--text-dim);font-family:\'Share Tech Mono\',monospace;font-size:12px;padding:16px 0;letter-spacing:.1em">// sin resultados</p>';
+        document.getElementById("results").style.display = "block";
+        return;
+      }
+
+      let totalFound = 0;
+      const storeCounts = {};
+
+      const sections = {};
+      for (const card of results) {
+        if (!sections[card.section]) sections[card.section] = [];
+        sections[card.section].push(card);
+      }
+
+      let delay = 0;
+      for (const [section, cards] of Object.entries(sections)) {
+        const divider = document.createElement("div");
+        divider.className = "section-divider";
+        divider.textContent = section;
+        body.appendChild(divider);
+
+        for (const card of cards) {
+          const foundInStores = card.stores.filter(s => s.found);
+          if (foundInStores.length > 0) totalFound++;
+          for (const s of foundInStores) {
+            storeCounts[s.store] = (storeCounts[s.store] || 0) + 1;
+          }
+
+          const row = document.createElement("div");
+          row.className = "card-row";
+          row.style.animationDelay = `${delay}ms`;
+          delay += 35;
+
+          const badges = card.stores.map(s => {
+            const meta = STORE_META[s.store] || {};
+            const cls  = s.found ? `found-${meta.cls}` : "not-found";
+            return `<span class="badge ${cls}">${meta.short || s.store}</span>`;
+          }).join("");
+
+          row.innerHTML = `
+            <div class="card-header" onclick="toggleRow(this)">
+              <span class="card-qty">${card.quantity}x</span>
+              <span class="card-name">${card.name}</span>
+              <div class="store-badges">${badges}</div>
+              <span class="chevron">▼</span>
+            </div>
+            <div class="card-details">
+              ${card.stores.map(s => renderStoreRow(s)).join("")}
+            </div>`;
+          body.appendChild(row);
+        }
+      }
+
+      stats.textContent = `${totalFound} / ${results.length} encontradas`;
+
+      summary.innerHTML = Object.entries(storeCounts).map(([name, count]) => {
+        const meta = STORE_META[name] || {};
+        return `<div class="summary-item">
+          <div class="summary-dot ${meta.dot}"></div>
+          <span>${name}: <strong style="color:var(--text)">${count}</strong></span>
+        </div>`;
+      }).join("");
+
+      setStatus("");
+      document.getElementById("results").style.display = "block";
+    }
+
+    function renderStoreRow(store) {
+      const meta   = STORE_META[store.store] || {};
+      const dotCls = store.found ? meta.dot : "dot-nf";
+
+      if (store.found) {
+        const linkHtml = store.url
+          ? `<a class="store-link" href="${store.url}" target="_blank" rel="noopener">Ver ↗</a>`
+          : "";
+        const stockBadge = store.stock === "outofstock"
+          ? `<span style="color:var(--red-dim);font-size:10px"> [sin stock]</span>`
+          : "";
+        return `
+          <div class="store-result">
+            <div class="store-dot ${dotCls}"></div>
+            <span class="store-name-label">${store.store}</span>
+            <span class="store-found-name">${store.name || ""}${stockBadge}</span>
+            <span class="store-price">${store.price || ""}</span>
+            ${linkHtml}
+          </div>`;
+      }
+
+      const errorHtml = store.error
+        ? `<span class="error-msg">[${store.error}]</span>`
+        : "";
+      return `
+        <div class="store-result">
+          <div class="store-dot ${dotCls}"></div>
+          <span class="store-name-label">${store.store}</span>
+          <span class="not-available">// no disponible</span>
+          ${errorHtml}
+        </div>`;
+    }
+
+    function toggleRow(header) {
+      header.closest(".card-row").classList.toggle("open");
+    }
+
+    loadDefaultCards();
+  </script>
+</body>
+</html>

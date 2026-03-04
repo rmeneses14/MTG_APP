@@ -1,0 +1,14 @@
+[CREATURES]
+1 Blood Seeker
+1 Bloodthirsty Conqueror
+1 Vein Ripper
+1 Vito, Thorn of the Dusk Rose
+
+[ARTIFACTS]
+1 Basilisk Collar
+1 Hammer of Purphoros
+1 Lightning Greaves
+1 Patchwork Banner
+
+[ENCHANTMENTS]
+1 Sanguine Bond
