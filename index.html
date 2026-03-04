@@ -1097,6 +1097,11 @@
         if (moxRes.status === "fulfilled" && moxRes.value && moxRes.value.ok) {
           const moxData = await moxRes.value.json();
           console.log("[Moxfield] response:", JSON.stringify(moxData));
+          if (moxData.debug) console.log("[Moxfield] debug:", JSON.stringify(moxData.debug));
+          // Log any errors per entry
+          for (const r of (moxData.results || [])) {
+            if (r.status === "error") console.warn(`[Moxfield] ${r.collector} / ${r.label}: ${r.error_detail}`);
+          }
           renderMoxfieldResults(moxData.results || []);
         } else if (moxRes.status === "fulfilled" && moxRes.value) {
           console.warn("[Moxfield] HTTP error:", moxRes.value.status);
