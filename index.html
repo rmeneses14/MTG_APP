@@ -1127,6 +1127,15 @@
         return;
       }
 
+      // Pre-filter: only cards found in at least one store
+      const hasAnyFindings = results.some(c => c.stores.some(s => s.found));
+      if (!hasAnyFindings) {
+        body.innerHTML = '<p style="color:var(--text-dim);font-family:\'Share Tech Mono\',monospace;font-size:12px;padding:16px 0;letter-spacing:.1em">// ninguna carta encontrada en tiendas</p>';
+        document.getElementById("results").style.display = "block";
+        stats.textContent = `0 / ${results.length} encontradas`;
+        return;
+      }
+
       let totalFound = 0;
       const storeCounts = {};
 
@@ -1138,14 +1147,17 @@
 
       let delay = 0;
       for (const [section, cards] of Object.entries(sections)) {
+        const cardsWithFindings = cards.filter(c => c.stores.some(s => s.found));
+        if (cardsWithFindings.length === 0) continue;
+
         const divider = document.createElement("div");
         divider.className = "section-divider";
         divider.textContent = section;
         body.appendChild(divider);
 
-        for (const card of cards) {
+        for (const card of cardsWithFindings) {
           const foundInStores = card.stores.filter(s => s.found);
-          if (foundInStores.length > 0) totalFound++;
+          totalFound++;
           for (const s of foundInStores) {
             storeCounts[s.store] = (storeCounts[s.store] || 0) + 1;
           }
