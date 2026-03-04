@@ -1,12 +1,9 @@
 # Lista de coleccionistas y sus Moxfields
 # ──────────────────────────────────────────────────────────────
 # Formato:
-#   [Nombre Coleccionista]   ← encabezado de sección
-#   Etiqueta del deck        ← descripción libre (opcional)
+#   [Nombre Coleccionista]
+#   Etiqueta del deck
 #   https://moxfield.com/decks/...
-#
-# Puedes tener múltiples decks/colecciones por coleccionista.
-# Agrega un nuevo [Nombre] para cada vendedor/coleccionista.
 # ──────────────────────────────────────────────────────────────
 
 [MascoCR 🔥]
@@ -27,3 +24,6 @@ https://moxfield.com/collection/1ikR4lbL0E6JIlZ1s1SMHA
 
 Solo Foil ✨
 https://moxfield.com/decks/w666vcs5i0qlEXcAHWnwBw
+
+[RAMUI]
+https://moxfield.com/decks/MAL39ofHYka_Hk6dWBlQXA
