@@ -1244,9 +1244,11 @@
 
       let delay = 0;
       for (const [collectorName, entries] of Object.entries(groups)) {
-        // Count matches across all decks for this collector
-        const totalMatches = new Set(entries.flatMap(e => e.matches || [])).size;
-        const hasAnyMatch = totalMatches > 0;
+      // Solo entries con matches
+        const entriesWithMatches = entries.filter(e => e.matches && e.matches.length > 0);
+        if (entriesWithMatches.length === 0) continue;
+
+        const totalMatches = new Set(entriesWithMatches.flatMap(e => e.matches)).size;
 
         // Collector header
         const groupEl = document.createElement("div");
@@ -1259,38 +1261,26 @@
         headerEl.innerHTML = `
           <span class="mox-collector-name">${collectorName}</span>
           <span class="mox-collector-rule"></span>
-          <span class="mox-collector-count">${hasAnyMatch ? `<strong style="color:var(--red-bright)">${totalMatches}</strong> carta${totalMatches !== 1 ? "s" : ""} encontrada${totalMatches !== 1 ? "s" : ""}` : entries.length + " lista" + (entries.length !== 1 ? "s" : "")}</span>`;
+          <span class="mox-collector-count"><strong style="color:var(--red-bright)">${totalMatches}</strong> carta${totalMatches !== 1 ? "s" : ""} encontrada${totalMatches !== 1 ? "s" : ""}</span>`;
         groupEl.appendChild(headerEl);
         delay += 60;
 
-        // Grid of decks for this collector
         const deckGrid = document.createElement("div");
         deckGrid.className = "mox-grid";
 
-        for (const entry of entries) {
-          const hasMatches = entry.matches && entry.matches.length > 0;
+        for (const entry of entriesWithMatches) {
           const card = document.createElement("div");
-          card.className = "mox-card" + (hasMatches ? " has-matches" : "");
+          card.className = "mox-card has-matches";
           card.style.animationDelay = `${delay}ms`;
           delay += 50;
 
           const typeBadge = entry.mox_type === "collection" ? "Colección" : "Deck";
 
-          let matchesHtml = "";
-          if (entry.status === "error") {
-            const detail = entry.error_detail ? ` (${entry.error_detail})` : "";
-            matchesHtml = `<span class="mox-error">// error al conectar${detail}</span>`;
-          } else if (hasMatches) {
-            matchesHtml = entry.matches
-              .map(m => `<span class="mox-match-tag">${m}</span>`)
-              .join("");
-          } else {
-            matchesHtml = `<span class="mox-no-match">// ninguna carta encontrada</span>`;
-          }
+          let matchesHtml = entry.matches
+            .map(m => `<span class="mox-match-tag">${m}</span>`)
+            .join("");
 
-          const countHtml = entry.status !== "error"
-            ? `<span class="mox-count"><strong>${entry.matches?.length || 0}</strong> / ${entry.total_cards || "?"} cartas</span>`
-            : `<span class="mox-count mox-error-count">⚠ sin conexión</span>`;
+          const countHtml = `<span class="mox-count"><strong>${entry.matches.length}</strong> / ${entry.total_cards || "?"} cartas</span>`;
 
           const labelText = entry.deck_name
             ? `${entry.label && entry.label !== entry.url ? entry.label + ' ' : ''}<em style="color:var(--text-dim);font-size:10px">(${entry.deck_name})</em>`
