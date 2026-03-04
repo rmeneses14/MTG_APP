@@ -590,6 +590,143 @@
       margin-top: 48px;
     }
 
+    /* ── Moxfield section ── */
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin: 48px 0 20px;
+    }
+
+    .section-title h2 {
+      font-size: 10px;
+      letter-spacing: 0.4em;
+      color: var(--red-dim);
+      text-transform: uppercase;
+      font-weight: 400;
+      white-space: nowrap;
+    }
+
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, var(--border-red), transparent);
+    }
+
+    .mox-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 10px;
+    }
+
+    .mox-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-top: 2px solid var(--red-deep);
+      border-radius: 2px;
+      padding: 16px 18px;
+      transition: border-top-color 0.2s, background 0.2s;
+      animation: slideIn 0.25s ease both;
+    }
+
+    .mox-card:hover { border-top-color: var(--red-dim); }
+    .mox-card.has-matches { border-top-color: var(--red); }
+
+    .mox-card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .mox-label {
+      font-size: 12px;
+      color: var(--text-bright);
+      line-height: 1.4;
+      flex: 1;
+    }
+
+    .mox-type-badge {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.08em;
+      padding: 2px 7px;
+      border-radius: 1px;
+      border: 1px solid var(--border-red);
+      color: var(--red-dim);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .mox-matches {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-bottom: 12px;
+      min-height: 24px;
+    }
+
+    .mox-match-tag {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 10px;
+      padding: 3px 8px;
+      background: rgba(192,57,43,0.1);
+      border: 1px solid rgba(192,57,43,0.25);
+      border-radius: 1px;
+      color: var(--red-bright);
+    }
+
+    .mox-no-match {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 11px;
+      color: #3a2828;
+      font-style: italic;
+    }
+
+    .mox-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+    }
+
+    .mox-count {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 10px;
+      color: var(--text-dim);
+    }
+
+    .mox-count strong { color: var(--red-bright); }
+
+    .mox-link {
+      font-family: 'Cinzel', serif;
+      font-size: 9px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--red-dim);
+      text-decoration: none;
+      border: 1px solid var(--border-red);
+      padding: 4px 10px;
+      border-radius: 1px;
+      transition: all 0.15s;
+    }
+
+    .mox-link:hover {
+      color: var(--red-bright);
+      border-color: var(--red);
+      box-shadow: 0 0 8px rgba(192,57,43,0.2);
+    }
+
+    .mox-error {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 11px;
+      color: var(--ember);
+      opacity: 0.5;
+    }
+
     /* ── Scrollbar ── */
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: var(--bg); }
@@ -669,6 +806,14 @@
       <div class="summary-bar" id="summaryBar"></div>
     </div>
 
+    <!-- ── Moxfield Section ── -->
+    <div id="moxfieldSection" style="display:none">
+      <div class="section-title">
+        <h2>⬡ Moxfield · Vendedores &amp; Coleccionistas</h2>
+      </div>
+      <div class="mox-grid" id="moxGrid"></div>
+    </div>
+
     <footer>Rakdos Card Finder · Precios y stock sujetos al inventario dinámico de cada tienda</footer>
   </div>
 
@@ -684,6 +829,9 @@
 
     const textarea = document.getElementById("cardList");
 
+    // ── Moxfields list ────────────────────────────────────────────────────
+    let moxfieldsRaw = "";
+
     async function loadDefaultCards() {
       try {
         const r = await fetch("cards.txt?t=" + Date.now());
@@ -694,15 +842,27 @@
           setTimeout(() => setStatus(""), 3000);
         }
       } catch {
-        // no fallback needed
+        const saved = localStorage.getItem("mtg_card_list");
+        if (saved) textarea.value = saved;
       }
+      // Load moxfields.txt silently in parallel
+      try {
+        const r2 = await fetch("moxfields.txt?t=" + Date.now());
+        if (r2.ok) moxfieldsRaw = await r2.text();
+      } catch { /* optional */ }
     }
-
 
     function setStatus(msg) {
       document.getElementById("statusMsg").textContent = msg;
     }
 
+    function saveList() {
+      localStorage.setItem("mtg_card_list", textarea.value);
+      setStatus("guardado localmente ✓");
+      setTimeout(() => setStatus(""), 3000);
+    }
+
+    // ── Store search ──────────────────────────────────────────────────────
     async function runSearch() {
       const cards = textarea.value.trim();
       if (!cards) { setStatus("escribe al menos una carta"); return; }
@@ -710,17 +870,36 @@
       document.getElementById("searchBtn").disabled = true;
       document.getElementById("loading").style.display = "block";
       document.getElementById("results").style.display = "none";
+      document.getElementById("moxfieldSection").style.display = "none";
       setStatus("buscando…");
 
       try {
-        const res = await fetch(`${BACKEND_URL}/search`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ cards }),
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        renderResults(data.results || []);
+        // Run store search and moxfield search in parallel
+        const [storeRes, moxRes] = await Promise.allSettled([
+          fetch(`${BACKEND_URL}/search`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ cards }),
+          }),
+          moxfieldsRaw ? fetch(`${BACKEND_URL}/moxfield-search`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ cards, moxfields: moxfieldsRaw }),
+          }) : Promise.resolve(null),
+        ]);
+
+        if (storeRes.status === "fulfilled" && storeRes.value.ok) {
+          const data = await storeRes.value.json();
+          renderResults(data.results || []);
+        } else {
+          throw new Error("Error en búsqueda de tiendas");
+        }
+
+        if (moxRes.status === "fulfilled" && moxRes.value && moxRes.value.ok) {
+          const moxData = await moxRes.value.json();
+          renderMoxfieldResults(moxData.results || []);
+        }
+
       } catch (err) {
         setStatus("error: " + err.message);
       } finally {
@@ -729,6 +908,7 @@
       }
     }
 
+    // ── Store results renderer ────────────────────────────────────────────
     function renderResults(results) {
       const body    = document.getElementById("resultsBody");
       const stats   = document.getElementById("resultsStats");
@@ -840,7 +1020,56 @@
       header.closest(".card-row").classList.toggle("open");
     }
 
+    // ── Moxfield results renderer ─────────────────────────────────────────
+    function renderMoxfieldResults(results) {
+      const grid = document.getElementById("moxGrid");
+      const section = document.getElementById("moxfieldSection");
+      grid.innerHTML = "";
+
+      if (!results.length) return;
+
+      let delay = 0;
+      for (const entry of results) {
+        const card = document.createElement("div");
+        card.className = "mox-card" + (entry.matches && entry.matches.length > 0 ? " has-matches" : "");
+        card.style.animationDelay = `${delay}ms`;
+        delay += 50;
+
+        const typeBadge = entry.mox_type === "collection" ? "Colección" : "Deck";
+
+        let matchesHtml = "";
+        if (entry.status === "error") {
+          matchesHtml = `<span class="mox-error">// error al conectar</span>`;
+        } else if (entry.matches && entry.matches.length > 0) {
+          matchesHtml = entry.matches
+            .map(m => `<span class="mox-match-tag">${m}</span>`)
+            .join("");
+        } else {
+          matchesHtml = `<span class="mox-no-match">// ninguna carta encontrada</span>`;
+        }
+
+        const countHtml = entry.status !== "error"
+          ? `<span class="mox-count"><strong>${entry.matches?.length || 0}</strong> / ${entry.total_cards || "?"} cartas</span>`
+          : `<span class="mox-count">—</span>`;
+
+        card.innerHTML = `
+          <div class="mox-card-top">
+            <span class="mox-label">${entry.label || entry.url}</span>
+            <span class="mox-type-badge">${typeBadge}</span>
+          </div>
+          <div class="mox-matches">${matchesHtml}</div>
+          <div class="mox-footer">
+            ${countHtml}
+            <a class="mox-link" href="${entry.url}" target="_blank" rel="noopener">Ver ↗</a>
+          </div>`;
+        grid.appendChild(card);
+      }
+
+      section.style.display = "block";
+    }
+
     loadDefaultCards();
   </script>
 </body>
 </html>
+
