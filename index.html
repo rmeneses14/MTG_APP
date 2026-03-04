@@ -700,6 +700,7 @@
     }
 
     .mox-count strong { color: var(--red-bright); }
+    .mox-error-count { color: var(--ember); font-size: 10px; }
 
     .mox-link {
       font-family: 'Cinzel', serif;
@@ -1060,7 +1061,14 @@
 
         if (moxRes.status === "fulfilled" && moxRes.value && moxRes.value.ok) {
           const moxData = await moxRes.value.json();
+          console.log("[Moxfield] response:", JSON.stringify(moxData));
           renderMoxfieldResults(moxData.results || []);
+        } else if (moxRes.status === "fulfilled" && moxRes.value) {
+          console.warn("[Moxfield] HTTP error:", moxRes.value.status);
+        } else if (moxRes.status === "rejected") {
+          console.warn("[Moxfield] fetch failed:", moxRes.reason);
+        } else if (!moxfieldsRaw) {
+          console.warn("[Moxfield] moxfields.txt vacío o no cargado");
         }
 
       } catch (err) {
@@ -1193,8 +1201,9 @@
 
       let delay = 0;
       for (const entry of results) {
+        const hasMatches = entry.matches && entry.matches.length > 0;
         const card = document.createElement("div");
-        card.className = "mox-card" + (entry.matches && entry.matches.length > 0 ? " has-matches" : "");
+        card.className = "mox-card" + (hasMatches ? " has-matches" : "");
         card.style.animationDelay = `${delay}ms`;
         delay += 50;
 
@@ -1202,8 +1211,9 @@
 
         let matchesHtml = "";
         if (entry.status === "error") {
-          matchesHtml = `<span class="mox-error">// error al conectar</span>`;
-        } else if (entry.matches && entry.matches.length > 0) {
+          const detail = entry.error_detail ? ` (${entry.error_detail})` : "";
+          matchesHtml = `<span class="mox-error">// error al conectar${detail}</span>`;
+        } else if (hasMatches) {
           matchesHtml = entry.matches
             .map(m => `<span class="mox-match-tag">${m}</span>`)
             .join("");
@@ -1213,11 +1223,16 @@
 
         const countHtml = entry.status !== "error"
           ? `<span class="mox-count"><strong>${entry.matches?.length || 0}</strong> / ${entry.total_cards || "?"} cartas</span>`
-          : `<span class="mox-count">—</span>`;
+          : `<span class="mox-count mox-error-count">⚠ sin conexión</span>`;
+
+        // Show deck_name if available and different from label
+        const labelText = (entry.deck_name && entry.deck_name !== entry.label)
+          ? `${entry.label} <em style="color:var(--text-dim);font-size:10px">(${entry.deck_name})</em>`
+          : (entry.label || entry.url);
 
         card.innerHTML = `
           <div class="mox-card-top">
-            <span class="mox-label">${entry.label || entry.url}</span>
+            <span class="mox-label">${labelText}</span>
             <span class="mox-type-badge">${typeBadge}</span>
           </div>
           <div class="mox-matches">${matchesHtml}</div>
