@@ -1,21 +1,29 @@
-# Lista de Moxfields registrados
-# Formato: una línea de etiqueta, luego la URL
-# Puedes agregar o quitar entradas libremente
+# Lista de coleccionistas y sus Moxfields
+# ──────────────────────────────────────────────────────────────
+# Formato:
+#   [Nombre Coleccionista]   ← encabezado de sección
+#   Etiqueta del deck        ← descripción libre (opcional)
+#   https://moxfield.com/decks/...
+#
+# Puedes tener múltiples decks/colecciones por coleccionista.
+# Agrega un nuevo [Nombre] para cada vendedor/coleccionista.
+# ──────────────────────────────────────────────────────────────
 
-🌟🔥Nueva colección🔥🌟
+[MascoCR 🔥]
+🌟 Nueva colección
 https://moxfield.com/decks/k1-riCuytUS-An390xhZhw
 
-*Land 🌄 -- Multicolor🎨 -- Colorless🩶 -- White☀*
+Land 🌄 / Multicolor 🎨 / Colorless 🩶 / White ☀
 https://moxfield.com/decks/BDmxFVRIykW3bbUkKz8t5A
 
-*Blue💧 -- Black💀 -- Red🔥 -- Green🌳*
+Blue 💧 / Black 💀 / Red 🔥 / Green 🌳
 https://moxfield.com/decks/-NHVLXnKsES1x2eyqiBLPw
 
-*Bulk Premium♻*
+Bulk Premium ♻
 https://moxfield.com/decks/-fvdK7bvyUaAoXovSi1U8w
 
-*Mas de 12.000 cartas para todos los gustos🛸🐮*
++12.000 cartas 🛸🐮
 https://moxfield.com/collection/1ikR4lbL0E6JIlZ1s1SMHA
 
-*Busco solo en foil*
+Solo Foil ✨
 https://moxfield.com/decks/w666vcs5i0qlEXcAHWnwBw
