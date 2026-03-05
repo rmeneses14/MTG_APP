@@ -274,7 +274,22 @@
       box-shadow: 0 0 24px rgba(192,57,43,0.3), inset 0 0 12px rgba(192,57,43,0.1);
     }
     .btn-search:active  { transform: translateY(1px); }
-    .btn-search:disabled { opacity: 0.35; cursor: not-allowed; transform: none; box-shadow: none; }
+    .btn-clear {
+      background: transparent;
+      border: 1px solid var(--border-red);
+      color: var(--text-dim);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      padding: 12px 20px;
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s;
+      text-transform: uppercase;
+    }
+    .btn-clear:hover {
+      color: var(--red-bright);
+      border-color: var(--red-bright);
+    }
 
 
     .status-msg {
@@ -984,6 +999,7 @@
         <button class="btn-search" id="searchBtn" onclick="runSearch()">
           ⬡ &nbsp;Buscar en tiendas
         </button>
+        <button class="btn-clear" onclick="clearList()">✕ &nbsp;Limpiar</button>
         <span class="status-msg" id="statusMsg"></span>
       </div>
       <div class="backend-note">
@@ -1062,6 +1078,15 @@
     }
 
     // ── Store search ──────────────────────────────────────────────────────
+    function clearList() {
+      document.getElementById("cardList").value = "";
+      localStorage.removeItem("mtg_card_list");
+      document.getElementById("results").style.display = "none";
+      document.getElementById("moxfieldSection").style.display = "none";
+      document.getElementById("summaryBar").style.display = "none";
+      document.getElementById("statusMsg").textContent = "";
+    }
+
     async function runSearch() {
       const cards = textarea.value.trim();
       if (!cards) { setStatus("escribe al menos una carta"); return; }
